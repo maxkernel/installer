@@ -14,11 +14,41 @@ options = [
 	'kernel.install'
 ]
 
+class ChildDialogExit(Exception):
+	pass
+
 class InstallerFrame(urwid.Frame):
 	def keypress(self, size, key):
 		if key == 'tab':
 			self.set_focus('body' if self.focus_part == 'footer' else 'footer')
 		return self.__super.keypress(size, key)
+
+class InstallerDialog(urwid.WidgetWrap):
+	def __init__(self, text, width, height, loop, action):
+		self.loop = loop
+		self.parent = loop.widget
+		self.action = action
+		
+		frame = urwid.Frame(urwid.SolidFill(' '), focus_part='footer')
+		frame.header = urwid.Padding(urwid.Text(text), align='center')
+		frame.footer = urwid.GridFlow([
+			urwid.AttrWrap(urwid.Button('No', on_press=lambda b: self.hide()), 'button', 'button active'),
+			urwid.AttrWrap(urwid.Button('Yes', on_press=lambda b: self.accept()), 'button', 'button active'),
+		], 7, 2, 1, 'center')
+		frame.footer.set_focus(1);
+		
+		self.view = urwid.Overlay( urwid.AttrWrap(urwid.LineBox(frame), 'dialog'), loop.widget, 'center', width, 'middle', height)
+		urwid.WidgetWrap.__init__(self, self.view)
+		
+		loop.widget = self.view
+	
+	def hide(self):
+		self.loop.widget=self.parent
+		raise ChildDialogExit()
+	
+	def accept(self):
+		self.action()
+		hide()
 
 class Installer:
 	screens = [
@@ -27,9 +57,10 @@ class Installer:
 	]
 	
 	palette = [
-		('header',		'white,bold',	'dark red',		''),
-		('body',		'white',		'dark blue',	''),
+		('header',		'white,bold',	'dark red'),
+		('body',		'white',		'dark blue'),
 		('footer',		'white',		'dark blue',	'standout'),
+		('dialog',		'white',		'dark red'),
 		
 		('button',		'black',		'light gray',	'standout'),
 		('button active','black',		'white',		'standout'),
@@ -42,6 +73,7 @@ class Installer:
 	def __init__(self, opts):
 		self.opts = opts
 		self.body = []
+		self.dialog = None
 		
 		# Import the screens
 		self.pages = []
@@ -56,7 +88,7 @@ class Installer:
 			[
 				urwid.AttrWrap(urwid.Button("Previous", on_press=lambda b: self.show(self.onpage - 1)), 'button', 'button active'),
 				urwid.AttrWrap(urwid.Button("Next", on_press=lambda b: self.show(self.onpage + 1)), 'button', 'button active')
-			], 15, 2, 0, 'right'
+			], 15, 2, 1, 'right'
 		)
 		footer.set_focus(1);
 		
@@ -69,20 +101,40 @@ class Installer:
 		self.loop = urwid.MainLoop(self.frame, self.palette, unhandled_input=self.unhandled_input)
 		self.show(0)
 	
-	def show(self, page):
+	def _doshow(self, page):
 		self.onpage = sorted((0, page, len(self.pages)))[1]		# Clamp page between 0 - len(pages)
 		if self.onpage == len(self.pages):
 			raise urwid.ExitMainLoop()
 		self.body[:] = self.pages[self.onpage].makepage(self.opts)
 		self.frame.set_focus('body')
 	
+	def show(self, page):
+		(success, msg) = self.pages[self.onpage].teardown(self.opts)
+		if not success:
+			self.popup("Problem:\n%s\n\nContinue?" %(msg), 40, 12, lambda: self._doshow(page))
+		else:
+			self._doshow(page)
+		
+	def popup(self, text, width, height, action):
+		self.dialog = InstallerDialog(text, width, height, self.loop, action)
+	
 	def unhandled_input(self, input):
-		if input == 'esc':
+		def quitaction():
 			raise urwid.ExitMainLoop()
+		
+		if input == 'esc':
+			if self.dialog == None:
+				self.popup('Are you sure you want to exit?', 30, 6, quitaction)
+			else:
+				self.dialog.accept()
 	
 	def main(self):
-		self.loop.run()
-		print(self.opts)
+		while True:
+			try:
+				self.loop.run()
+				break
+			except ChildDialogExit:
+				self.dialog = None
 
 def warning(msg):
 	print >> sys.stderr, "** Warning:", msg

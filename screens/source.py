@@ -55,3 +55,6 @@ def makepage(opts):
         urwid.AttrWrap(stitcher_src, 'edit', 'edit active'),
         urwid.AttrWrap(modules_src, 'edit', 'edit active'),
     ]
+
+def teardown(opts):
+    return ( False, 'Blah??' )

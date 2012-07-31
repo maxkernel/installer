@@ -34,3 +34,6 @@ Questions about these steps and problems encountered can be emailed to
 andrew@maxkernel.com
 """
 	return [ urwid.Text(info) ]
+
+def teardown(opts):
+	return ( True, '' )
