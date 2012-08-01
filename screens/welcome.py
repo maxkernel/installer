@@ -1,6 +1,6 @@
 import urwid
 
-def makepage(opts):
+def makepage(opts, loop):
 	info = """
 Welcome to the MaxKernel installer script
 ----------------------------------------------------------------------------
@@ -35,5 +35,5 @@ andrew@maxkernel.com
 """
 	return [ urwid.Text(info) ]
 
-def teardown(opts):
+def teardown(opts, loop):
 	return ( True, '' )

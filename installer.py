@@ -6,7 +6,7 @@ sys.path.append("screens")
 
 options = [
 	'installer.cfgfile',
-	'installer.download',
+	'installer.tmpdir',
 	'installer.kernel_src',
 	'installer.stitcher_src',
 	'installer.modules_src',
@@ -14,7 +14,7 @@ options = [
 	'kernel.install'
 ]
 
-class ChildDialogExit(Exception):
+class DialogExit(Exception):
 	pass
 
 class InstallerFrame(urwid.Frame):
@@ -23,37 +23,36 @@ class InstallerFrame(urwid.Frame):
 			self.set_focus('body' if self.focus_part == 'footer' else 'footer')
 		return self.__super.keypress(size, key)
 
-class InstallerDialog(urwid.WidgetWrap):
+class InstallerDialog:
 	def __init__(self, text, width, height, loop, action):
 		self.loop = loop
 		self.parent = loop.widget
 		self.action = action
 		
 		frame = urwid.Frame(urwid.SolidFill(' '), focus_part='footer')
-		frame.header = urwid.Padding(urwid.Text(text), align='center')
+		frame.header = urwid.Padding(urwid.Text(text), align='left')
 		frame.footer = urwid.GridFlow([
 			urwid.AttrWrap(urwid.Button('No', on_press=lambda b: self.hide()), 'button', 'button active'),
 			urwid.AttrWrap(urwid.Button('Yes', on_press=lambda b: self.accept()), 'button', 'button active'),
 		], 7, 2, 1, 'center')
-		frame.footer.set_focus(1);
+		frame.footer.set_focus(0);
 		
-		self.view = urwid.Overlay( urwid.AttrWrap(urwid.LineBox(frame), 'dialog'), loop.widget, 'center', width, 'middle', height)
-		urwid.WidgetWrap.__init__(self, self.view)
-		
-		loop.widget = self.view
+		loop.widget = urwid.Overlay( urwid.AttrWrap(urwid.LineBox(frame), 'dialog'), loop.widget, 'center', width, 'middle', height)
 	
 	def hide(self):
 		self.loop.widget=self.parent
-		raise ChildDialogExit()
+		raise DialogExit()
 	
 	def accept(self):
 		self.action()
-		hide()
+		self.hide()
+
 
 class Installer:
 	screens = [
 		'welcome',
-		'source'
+		'source',
+		'source_task',
 	]
 	
 	palette = [
@@ -105,14 +104,19 @@ class Installer:
 		self.onpage = sorted((0, page, len(self.pages)))[1]		# Clamp page between 0 - len(pages)
 		if self.onpage == len(self.pages):
 			raise urwid.ExitMainLoop()
-		self.body[:] = self.pages[self.onpage].makepage(self.opts)
+		self.body[:] = self.pages[self.onpage].makepage(self.opts, self.loop)
 		self.frame.set_focus('body')
 	
 	def show(self, page):
-		(success, msg) = self.pages[self.onpage].teardown(self.opts)
-		if not success:
-			self.popup("Problem:\n%s\n\nContinue?" %(msg), 40, 12, lambda: self._doshow(page))
+		(success, msg) = self.pages[self.onpage].teardown(self.opts, self.loop)
+		if not success and len(msg) == 0:
+			# Prevent continuing
+			return
+		elif not success:
+			# Alert problem and allow forced continuing
+			self.popup("Problem:\n\n%s\n\nContinue?" %(msg), 40, 12, lambda: self._doshow(page))
 		else:
+			# Continue
 			self._doshow(page)
 		
 	def popup(self, text, width, height, action):
@@ -124,7 +128,7 @@ class Installer:
 		
 		if input == 'esc':
 			if self.dialog == None:
-				self.popup('Are you sure you want to exit?', 30, 6, quitaction)
+				self.popup("Are you sure you want to exit?", 35, 6, quitaction)
 			else:
 				self.dialog.accept()
 	
@@ -133,7 +137,7 @@ class Installer:
 			try:
 				self.loop.run()
 				break
-			except ChildDialogExit:
+			except DialogExit:
 				self.dialog = None
 
 def warning(msg):

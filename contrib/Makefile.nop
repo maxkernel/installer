@@ -1,0 +1,14 @@
+# Nop makefile
+
+all:
+	# Nop
+
+install:
+	# Nop
+
+clean:
+	# Nop
+
+depend:
+	# Nop
+
