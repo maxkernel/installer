@@ -1,0 +1,29 @@
+#INSTALL			= /usr/lib/maxkernel
+#MODEL			= Robot
+#SRIPTS			=
+#MODULES			=
+
+.PHONY: all install clean rebuild depend
+
+all:
+	$(MAKE) -C kernel all "INSTALL=$(INSTALL)" "MODEL=$(MODEL)"
+	$(MAKE) -C stitcher all "INSTALL=$(INSTALL)" "SCRIPTS=$(SCRIPTS)"
+	$(MAKE) -C modules all "INSTALL=$(INSTALL)" "MODULES=$(MODULES)"
+	echo "-----------------------------------------------------------"
+	cat kernel/buildlog stitcher/buildlog modules/buildlog | tee buildlog
+
+install:
+	$(MAKE) -C kernel install "INSTALL=$(INSTALL)" "MODEL=$(MODEL)"
+	$(MAKE) -C stitcher install "INSTALL=$(INSTALL)" "SCRIPTS=$(SCRIPTS)"
+	$(MAKE) -C modules install "INSTALL=$(INSTALL)" "MODULES=$(MODULES)"
+
+clean:
+	$(MAKE) -C kernel clean
+	$(MAKE) -C stitcher clean
+	$(MAKE) -C modules clean
+
+rebuild: clean all
+
+depend:
+	# TODO - finish me
+

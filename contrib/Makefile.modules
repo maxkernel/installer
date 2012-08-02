@@ -1,12 +1,10 @@
 INSTALL		= /usr/lib/maxkernel
-RELEASE		= BETA
 
 MODULES		= 
-DEFINES		= -D_GNU_SOURCE -D$(RELEASE) -DRELEASE="\"$(RELEASE)\"" -DINSTALL="\"$(INSTALL)\""
+DEFINES		= -D_GNU_SOURCE -DINSTALL="\"$(INSTALL)\""
 
 
 export INSTALL
-export RELEASE
 
 .PHONY: prepare all install clean rebuild depend
 

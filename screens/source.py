@@ -3,10 +3,10 @@ from common import *
 
 
 defaults = {
-	'installer.tmpdir':		'/tmp/maxkernel-install',
-	'installer.kernel_src':	'file://${HOME}/kernel.tar.gz',
-	'installer.stitcher_src':  'file://${HOME}/stitcher.tar.gz',
-	'installer.modules_src':   'file://${HOME}/modules.tar.gz',
+	'installer.tmpdir':			'/tmp/maxkernel-install',
+	'installer.kernel_src':		'file://${HOME}/kernel.tar.gz',
+	'installer.stitcher_src':	'file://${HOME}/stitcher.tar.gz',
+	'installer.modules_src':	'file://${HOME}/modules.tar.gz',
 }
 
 def option(opts, key):

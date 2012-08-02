@@ -1,5 +1,7 @@
 # Nop makefile
 
+.PHONY: all install clean depend
+
 all:
 	# Nop
 

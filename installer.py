@@ -11,7 +11,13 @@ options = [
 	'installer.stitcher_src',
 	'installer.modules_src',
 	
-	'kernel.install'
+	'kernel.install',
+	'kernel.model',
+	
+	'stitcher.list',
+	
+	'modules.core',
+	'modules.list',
 ]
 
 class DialogExit(Exception):
@@ -53,6 +59,10 @@ class Installer:
 		'welcome',
 		'source',
 		'source_task',
+		'kernel',
+		'stitcher',
+		'modules',
+		'generate_task',
 	]
 	
 	palette = [

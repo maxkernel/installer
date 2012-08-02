@@ -12,13 +12,14 @@ def makepage(opts, loop):
 	
 	args = {
 		'I_TMPDIR': option(opts, 'installer.tmpdir'),
-		'I_KERNEL_SRC': option(opts, 'installer.kernel_src'),
-		'I_STITCHER_SRC': option(opts, 'installer.stitcher_src'),
-		'I_MODULES_SRC': option(opts, 'installer.modules_src'),
+		'K_INSTALL': option(opts, 'kernel.install'),
+		'K_MODEL': option(opts, 'kernel.model'),
+		'S_LIST': option(opts, 'stitcher.list'),
+		'M_LIST': option(opts, 'modules.list'),
 	}
 	
 	text = urwid.Text('')
-	task = Task(text, loop, 'source', args)
+	task = Task(text, loop, 'generate', args)
 	
 	return [
 		urwid.Text("Running task. This may take a while..."),

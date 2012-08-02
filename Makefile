@@ -1,11 +1,18 @@
 
-FILE			=default.cfg
+FILE			= default.cfg
 ARGS			=
 
-I_TMPDIR		=/tmp/maxkernel-install
-I_KERNEL_SRC	=file://${HOME}/kernel.tar.gz
-I_STITCHER_SRC	=file://${HOME}/stitcher.tar.gz
-I_MODULES_SRC	=file://${HOME}/modules.tar.gz
+I_TMPDIR		= /tmp/maxkernel-install
+I_KERNEL_SRC	= file://${HOME}/kernel.tar.gz
+I_STITCHER_SRC	= file://${HOME}/stitcher.tar.gz
+I_MODULES_SRC	= file://${HOME}/modules.tar.gz
+
+K_INSTALL		= /usr/lib/maxkernel
+K_MODEL			= Robot
+
+S_LIST			=
+
+M_LIST			=
 
 
 .PHONY: prepare all installer source clean
@@ -17,6 +24,7 @@ installer:
 	python installer.py $(ARGS) "$(FILE)"
 
 source: prepare
+	# Needs: I_TMPDIR I_KERNEL_SRC I_STITCHER_SRC I_MODULES_SRC
 	# Make temporary directory
 	[ ! -d '$(I_TMPDIR)' ] || ( echo "Temporary directory $(I_TMPDIR) exists!" >>buildlog && cat buildlog && false )
 	mkdir -p $(I_TMPDIR) $(I_TMPDIR)/kernel $(I_TMPDIR)/stitcher $(I_TMPDIR)/modules
@@ -36,8 +44,16 @@ source: prepare
 	# Print success
 	( echo "Done (success)" >>buildlog && cat buildlog )
 
+generate: prepare
+	# Needs: I_TMPDIR K_INSTALL K_MODEL S_LIST M_LIST
+	# Generate the makefile
+	( echo "INSTALL = $(K_INSTALL)\nMODEL = $(K_MODEL)\nSCRIPTS = $(S_LIST)\nMODULES = $(M_LIST)\n" | cat - contrib/Makefile.root >$(I_TMPDIR)/Makefile ) || ( cat buildlog && false )
+	
+	# Print success
+	( echo "Done (success)" >>buildlog && cat buildlog )
+
 clean:
-	rm -rf $(I_TMPDIR)
+	( rm -rf $(I_TMPDIR) ) || true
 
 prepare:
 	# Prepare the log file
