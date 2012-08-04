@@ -1,4 +1,4 @@
-import urwid, subprocess
+import urwid, subprocess, re, shlex
 
 
 def parsebool(b):
@@ -78,3 +78,73 @@ class Task:
         
         success = 'Done (success)' in self.textbox.get_text()[0]
         return ( success, '' if success else 'Error occurred during execution' )
+
+def stitcher_lua_info(path):
+	info = {
+		'description': '',
+		'dependencies': '',
+		'configuration': [],
+	}
+	
+	p_desc = re.compile('^---\s*Description:\s*(.+)$', re.IGNORECASE)
+	p_dep = re.compile('^---\s*Dependencies:\s*(.+)$', re.IGNORECASE)
+	p_config = re.compile('^---\s*Configuration:$', re.IGNORECASE)
+	
+	with open(path,'r') as fd:
+		for line in fd:
+			line = line.strip()
+			
+			m_desc = p_desc.match(line)
+			m_dep = p_desc.match(line)
+			m_config = p_config.match(line)
+			
+			if m_desc != None:
+				info['description'] = (info['description'] + ' ' + m_desc.group(1)).strip()
+			
+			elif m_dep != None:
+				info['dependencies'] = (info['dependencies'] + ' ' + m_dep.group(1)).strip()
+			
+			elif m_config != None:
+				# Parse out the configuration
+				for line in fd:
+					line = line.strip()
+					
+					if len(line) == 0:
+						break
+					
+					config = {
+						'name': '',
+						'value': '',
+						'documentation': '',
+					}
+					
+					try:
+						lexer = [token for token in shlex.shlex(line)]
+						lexer.reverse()
+						tok = lexer.pop()
+						
+						if tok in ('local', 'global'):
+							# Ignore modifiers
+							tok = lexer.pop()
+						
+						config['name'] = tok
+						tok = lexer.pop()
+						
+						if tok not in ('=',):
+							# Bad line!
+							raise StopIteration
+						tok = lexer.pop()
+						
+						config['value'] = tok
+						
+						lexer.reverse()
+						doc = ' '.join(lexer)
+						config['documentation'] = doc[len('- -'):] if doc.startswith('- -') else doc
+					
+					except IndexError:
+						# Bad line
+						continue
+					
+					info['configuration'].append(config)						
+			
+	return info

@@ -5,11 +5,8 @@ from common import *
 def option(opts, key):
 	return opts[key] if key in opts else '?'
 
-task = None
 
-def makepage(opts, loop):
-	global task
-	
+def makepage(opts, objs, loop):
 	args = {
 		'I_TMPDIR': option(opts, 'installer.tmpdir'),
 		'K_INSTALL': option(opts, 'kernel.install'),
@@ -19,7 +16,7 @@ def makepage(opts, loop):
 	}
 	
 	text = urwid.Text('')
-	task = Task(text, loop, 'generate', args)
+	objs['generate_task'] = Task(text, loop, 'generate', args)
 	
 	return [
 		urwid.Text("Running task. This may take a while..."),
@@ -27,7 +24,5 @@ def makepage(opts, loop):
 		text,
 	]
 
-def teardown(opts, loop):
-	global task
-	
-	return task.check()
+def teardown(opts, objs, loop):
+	return objs['generate_task'].check()

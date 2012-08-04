@@ -15,6 +15,7 @@ options = [
 	'kernel.model',
 	
 	'stitcher.list',
+	'stitcher.config',
 	
 	'modules.core',
 	'modules.list',
@@ -60,7 +61,8 @@ class Installer:
 		'source',
 		'source_task',
 		'kernel',
-		'stitcher',
+		'stitcher1',
+		'stitcher2',
 		'modules',
 		'generate_task',
 	]
@@ -81,6 +83,7 @@ class Installer:
 	
 	def __init__(self, opts):
 		self.opts = opts
+		self.objs = dict()
 		self.body = []
 		self.dialog = None
 		
@@ -114,11 +117,11 @@ class Installer:
 		self.onpage = sorted((0, page, len(self.pages)))[1]		# Clamp page between 0 - len(pages)
 		if self.onpage == len(self.pages):
 			raise urwid.ExitMainLoop()
-		self.body[:] = self.pages[self.onpage].makepage(self.opts, self.loop)
+		self.body[:] = self.pages[self.onpage].makepage(self.opts, self.objs, self.loop)
 		self.frame.set_focus('body')
 	
 	def show(self, page):
-		(success, msg) = self.pages[self.onpage].teardown(self.opts, self.loop)
+		(success, msg) = self.pages[self.onpage].teardown(self.opts, self.objs, self.loop)
 		if not success and len(msg) == 0:
 			# Prevent continuing
 			return
@@ -188,6 +191,8 @@ def main(opts, args):
 			warning("Unknown option %s = %s: Ignoring!" %(k, v))
 	
 	Installer(opts).main()
+	
+	print(opts)
 
 if __name__ == "__main__":
 	try:

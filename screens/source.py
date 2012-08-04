@@ -13,7 +13,7 @@ def option(opts, key):
 	return opts[key] if key in opts else defaults[key] if key in defaults else ''
 
 
-def makepage(opts, loop):
+def makepage(opts, objs, loop):
 	
 	kernel_src   = text_new("Kernel Source:          ", 'installer.kernel_src', opts, option)
 	stitcher_src = text_new("Stitcher Scripts:       ", 'installer.stitcher_src', opts, option)
@@ -37,7 +37,7 @@ def makepage(opts, loop):
 		tmpdir['ui'],
 	]
 
-def teardown(opts, loop):
+def teardown(opts, objs, loop):
 	kernel_path = option(opts, 'installer.kernel_src')
 	stitcher_paths = option(opts, 'installer.stitcher_src').split(' ')
 	modules_paths = option(opts, 'installer.modules_src').split(' ')

@@ -10,7 +10,7 @@ def option(opts, key):
 	return opts[key] if key in opts else defaults[key] if key in defaults else ''
 
 
-def makepage(opts, loop):
+def makepage(opts, objs, loop):
 	
 	install_dir		= text_new("Install Directory:     ", 'kernel.install', opts, option)
 	model_name 		= text_new("Robot model:           ", 'kernel.model', opts, option)
@@ -23,7 +23,7 @@ def makepage(opts, loop):
 		model_name['ui'],
 	]
 
-def teardown(opts, loop):
+def teardown(opts, objs, loop):
 	install_dir = option(opts, 'kernel.install')
 	model_name = option(opts, 'kernel.model')
 	

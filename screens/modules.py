@@ -10,7 +10,7 @@ def option(opts, key):
 	return opts[key] if key in opts else defaults[key] if key in defaults else ''
 
 
-def makepage(opts, loop):
+def makepage(opts, objs, loop):
 	
 	list = [
 		urwid.Text("Modules configuration - Select optional modules you would like to install"),
@@ -21,5 +21,5 @@ def makepage(opts, loop):
 	
 	return list
 
-def teardown(opts, loop):
+def teardown(opts, objs, loop):
 	return ( True, '' )
